@@ -1,0 +1,192 @@
+# 🛰 Request Logger Middleware
+
+A fullstack project that implements custom HTTP request logging middleware using **Express.js** and a **React** frontend to trigger and visualize requests in real time.
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [How the Middleware Works](#how-the-middleware-works)
+- [API Endpoints](#api-endpoints)
+- [Example Output](#example-output)
+
+---
+
+## Overview
+
+This project demonstrates how middleware works in Express.js. Every incoming HTTP request is intercepted and logged with:
+
+- **Timestamp** — `HH:MM:SS` format
+- **HTTP Method** — `GET`, `POST`, `DELETE`, etc.
+- **Request URL** — `/user`, `/products`, etc.
+
+**Example log output:**
+```
+10:30:22 GET /user
+10:31:05 POST /orders
+10:31:47 DELETE /user/42
+```
+
+---
+
+## Project Structure
+
+```
+project/
+├── server/
+│   ├── index.js                  # Express server entry point
+│   └── middleware/
+│       └── logger.js             # Custom logging middleware
+└── client/
+    └── src/
+        └── App.jsx               # React frontend
+```
+
+---
+
+## Tech Stack
+
+| Layer    | Technology        |
+|----------|-------------------|
+| Backend  | Node.js, Express  |
+| Frontend | React, Vite       |
+| Styling  | Inline CSS        |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm
+
+---
+
+### 1. Clone / Set Up the Project
+
+```bash
+mkdir project && cd project
+```
+
+---
+
+### 2. Start the Backend Server
+
+```bash
+cd server
+npm install
+node index.js
+```
+
+Server will run at: `http://localhost:5000`
+
+---
+
+### 3. Start the React Frontend
+
+Open a **second terminal**:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Frontend will run at: `http://localhost:5173`
+
+---
+
+### ⚠️ Important
+
+Both terminals must be running **at the same time**.
+
+| Terminal | Command | URL |
+|----------|---------|-----|
+| Terminal 1 (Backend) | `node index.js` | http://localhost:5000 |
+| Terminal 2 (Frontend) | `npm run dev` | http://localhost:5173 |
+
+---
+
+## How the Middleware Works
+
+```
+React Button Click
+      │
+      ▼
+fetch("GET /user")
+      │
+      ▼
+Express receives request
+      │
+      ▼
+ ┌─── logger middleware ───┐
+ │  1. Get timestamp       │  →  "10:30:22"
+ │  2. Get req.method      │  →  "GET"
+ │  3. Get req.originalUrl │  →  "/user"
+ │  4. console.log(...)    │  →  10:30:22 GET /user
+ │  5. next() ────────────►│
+ └────────────────────────┘
+      │
+      ▼
+Route handler runs → sends JSON response
+```
+
+### `middleware/logger.js`
+
+```js
+const logger = (req, res, next) => {
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+
+  console.log(`${time} ${req.method} ${req.originalUrl}`);
+
+  next(); // Always call next() or the request will hang
+};
+```
+
+> `next()` is critical — it passes control to the next route handler after logging.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/user` | Returns a single user object |
+| GET | `/products` | Returns a list of products |
+| POST | `/orders` | Creates a new order |
+| DELETE | `/user/:id` | Deletes a user by ID |
+
+---
+
+## Example Output
+
+**Server Terminal:**
+```
+Server running at http://localhost:5000
+10:30:22 GET /user
+10:31:05 GET /products
+10:31:47 POST /orders
+10:32:10 DELETE /user/42
+```
+
+**Browser UI:**
+- Click buttons to trigger requests
+- Logs appear in real time in the on-screen console
+- Server JSON responses are displayed below the log
+
+---
+
+## Common Issues & Fixes
+
+| Error | Fix |
+|-------|-----|
+| `Cannot find module 'index.js'` | `cd` into the `server/` folder before running `node index.js` |
+| `Failed to fetch` | Make sure both server and client are running simultaneously |
+| CORS error | Ensure `origin` in CORS config matches your Vite port (default: `5173`) |
+| `EADDRINUSE` | Port 5000 is in use — change `PORT` in `index.js` to `3001` |
